@@ -2,7 +2,7 @@
 
 # Konfigurasi build: menentukan folder publik
 [build]
-  publish = "public"
+  publish = "aplikasiwebsesi5"
 
 # Konfigurasi Edge Function: menghubungkan path dengan fungsi
 [[edge_functions]]
