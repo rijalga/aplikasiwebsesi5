@@ -1,0 +1,10 @@
+# netlify.toml
+
+# Konfigurasi build: menentukan folder publik
+[build]
+  publish = "public"
+
+# Konfigurasi Edge Function: menghubungkan path dengan fungsi
+[[edge_functions]]
+  path = "/*"           # Semua permintaan akan diproses oleh fungsi ini
+  function = "api.php"      # Nama file fungsi (php.ts) yang akan dijalankan
