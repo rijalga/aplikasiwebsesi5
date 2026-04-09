@@ -1,0 +1,92 @@
+/* style.css - Tambahan styling modern dan responsif */
+body {
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e9edf2 100%);
+    min-height: 100vh;
+}
+
+/* Jika font Inter tidak di-load dari Google Font, kita bisa fallback */
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700&display=swap');
+
+.card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(2px);
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 1rem 2rem rgba(0,0,0,0.1) !important;
+}
+
+.btn-primary {
+    background: #0d6efd;
+    border: none;
+    transition: all 0.2s;
+}
+
+.btn-primary:hover {
+    background: #0b5ed7;
+    transform: scale(1.02);
+}
+
+#weatherResult .card-body {
+    background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 1rem;
+}
+
+#weatherIcon {
+    filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
+    transition: transform 0.3s;
+}
+
+#weatherIcon:hover {
+    transform: rotate(5deg) scale(1.05);
+}
+
+.history-item {
+    cursor: pointer;
+    color: #0d6efd;
+    font-weight: 500;
+    display: inline-block;
+}
+
+.history-item:hover {
+    text-decoration: underline !important;
+    color: #0a58ca;
+}
+
+.list-group-item {
+    border-left: none;
+    border-right: none;
+    padding: 0.75rem 0;
+}
+
+/* Responsif untuk mobile */
+@media (max-width: 768px) {
+    .display-5 {
+        font-size: 2rem;
+    }
+    .input-group-lg .btn {
+        padding: 0.5rem 1rem;
+    }
+    .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}
+
+/* Loading spinner custom */
+.spinner-border {
+    border-width: 0.25rem;
+}
+
+/* Animasi fade-in untuk hasil cuaca */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+#weatherResult:not(.d-none) {
+    animation: fadeIn 0.5s ease;
+}

@@ -1,0 +1,204 @@
+<?php
+session_start();
+// Inisialisasi riwayat jika belum ada
+if (!isset($_SESSION['history'])) {
+    $_SESSION['history'] = [];
+}
+?>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WeatherCheck - Belajar API </title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <!-- Header -->
+            <div class="text-center mb-5">
+                <h1 class="display-5 fw-bold text-primary">
+                    <i class="bi bi-cloud-sun"></i> WeatherCheck </p> Nobel Indonesia Institute
+                </h1>
+                <p class="lead text-secondary">Belajar integrasi API cuaca dengan PHP & JavaScript (AJAX)</p>
+                <hr class="w-25 mx-auto">
+            </div>
+
+            <!-- Form Pencarian -->
+            <div class="card shadow-sm border-0 rounded-4 mb-4">
+                <div class="card-body p-4">
+                    <div class="input-group input-group-lg">
+                        <input type="text" id="cityInput" class="form-control rounded-start-3" 
+                               placeholder="Masukkan nama kota, misal: Jakarta, London, Tokyo">
+                        <button id="checkBtn" class="btn btn-primary rounded-end-3 px-4">
+                            <i class="bi bi-search"></i> Cek Cuaca
+                        </button>
+                    </div>
+                    <div class="form-text text-muted mt-2">
+                        <i class="bi bi-info-circle"></i> Contoh: Semarang, New York, Paris
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading Spinner -->
+            <div id="loadingSpinner" class="text-center my-4 d-none">
+                <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2 text-muted">Mengambil data cuaca...</p>
+            </div>
+
+            <!-- Tempat Hasil Cuaca -->
+            <div id="weatherResult" class="card shadow-sm border-0 rounded-4 mb-4 d-none">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h2 class="h3 mb-0" id="cityName">-</h2>
+                        <img id="weatherIcon" src="" alt="icon cuaca" width="60">
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <p><i class="bi bi-thermometer-half text-danger"></i> <strong>Suhu:</strong> <span id="temp">-</span> °C</p>
+                            <p><i class="bi bi-cloud-fog2 text-info"></i> <strong>Deskripsi:</strong> <span id="description">-</span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><i class="bi bi-droplet-half text-primary"></i> <strong>Kelembaban:</strong> <span id="humidity">-</span> %</p>
+                            <p><i class="bi bi-wind text-secondary"></i> <strong>Kecepatan Angin:</strong> <span id="wind">-</span> m/s</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pesan Error -->
+            <div id="errorMessage" class="alert alert-danger rounded-4 d-none" role="alert"></div>
+
+            <!-- Riwayat Pencarian -->
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header bg-white border-0 pt-4">
+                    <h5 class="mb-0"><i class="bi bi-clock-history"></i> Riwayat Pencarian</h5>
+                </div>
+                <div class="card-body" id="historyList">
+                    <p class="text-muted">Belum ada riwayat.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Function untuk mengambil data cuaca via AJAX
+    async function getWeather(city) {
+        // Validasi input kosong
+        if (!city.trim()) {
+            showError("Nama kota tidak boleh kosong!");
+            return;
+        }
+
+        // Sembunyikan hasil sebelumnya dan error, tampilkan loading
+        document.getElementById('weatherResult').classList.add('d-none');
+        document.getElementById('errorMessage').classList.add('d-none');
+        document.getElementById('loadingSpinner').classList.remove('d-none');
+
+        try {
+            // Panggil api.php dengan parameter city
+            const response = await fetch(`api.php?action=getWeather&city=${encodeURIComponent(city)}`);
+            const data = await response.json();
+
+            if (data.success) {
+                // Tampilkan data cuaca
+                displayWeather(data.data);
+                // Setelah sukses, refresh riwayat
+                loadHistory();
+            } else {
+                showError(data.message);
+            }
+        } catch (error) {
+            showError("Terjadi kesalahan jaringan. Silakan coba lagi.");
+            console.error(error);
+        } finally {
+            document.getElementById('loadingSpinner').classList.add('d-none');
+        }
+    }
+
+    // Function untuk menampilkan data cuaca ke HTML
+    function displayWeather(weather) {
+        document.getElementById('cityName').innerText = `${weather.city}, ${weather.country}`;
+        document.getElementById('temp').innerText = weather.temp;
+        document.getElementById('description').innerText = weather.description;
+        document.getElementById('humidity').innerText = weather.humidity;
+        document.getElementById('wind').innerText = weather.wind;
+        // Ikon cuaca dari OpenWeatherMap
+        const iconUrl = `https://openweathermap.org/img/wn/${weather.icon}@2x.png`;
+        document.getElementById('weatherIcon').src = iconUrl;
+        document.getElementById('weatherResult').classList.remove('d-none');
+    }
+
+    // Function menampilkan error
+    function showError(message) {
+        const errorDiv = document.getElementById('errorMessage');
+        errorDiv.innerText = message;
+        errorDiv.classList.remove('d-none');
+        document.getElementById('weatherResult').classList.add('d-none');
+    }
+
+    // Function mengambil dan menampilkan riwayat dari session (via API)
+    async function loadHistory() {
+        try {
+            const response = await fetch('api.php?action=getHistory');
+            const data = await response.json();
+            if (data.success && data.history.length > 0) {
+                let html = '<ul class="list-group list-group-flush">';
+                data.history.forEach(city => {
+                    html += `<li class="list-group-item bg-transparent">
+                                <i class="bi bi-geo-alt-fill text-primary me-2"></i> 
+                                <a href="#" class="history-item text-decoration-none" data-city="${city}">${city}</a>
+                             </li>`;
+                });
+                html += '</ul>';
+                document.getElementById('historyList').innerHTML = html;
+                
+                // Tambahkan event listener ke setiap link riwayat
+                document.querySelectorAll('.history-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const city = item.getAttribute('data-city');
+                        document.getElementById('cityInput').value = city;
+                        getWeather(city);
+                    });
+                });
+            } else {
+                document.getElementById('historyList').innerHTML = '<p class="text-muted">Belum ada riwayat.</p>';
+            }
+        } catch (error) {
+            console.error('Gagal load history:', error);
+        }
+    }
+
+    // Event listener tombol cek cuaca
+    document.getElementById('checkBtn').addEventListener('click', () => {
+        const city = document.getElementById('cityInput').value;
+        getWeather(city);
+    });
+
+    // Event enter pada input
+    document.getElementById('cityInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            document.getElementById('checkBtn').click();
+        }
+    });
+
+    // Load riwayat saat halaman pertama dimuat
+    loadHistory();
+</script>
+
+<!-- Optional Bootstrap JS (untuk interaksi lain, tidak wajib) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
